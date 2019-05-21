@@ -73,13 +73,30 @@ function validCNPJ(_cnpj) {
   return calc(t) === d1 && calc(t + 1) === d2;
 }
 
-function validCPForCNPJ(data, type) {
+function validateCity(city) {
 
 }
 
-function validateCity(code) {
+function validateState(uf) {
 
 }
+
+function validateCityWithinState(city, uf) {
+
+}
+
+function validateCountry(country) {
+
+}
+
+function validateCEP(cep) {
+
+}
+
+function validateAddress(address) {
+
+}
+
 // eslint-disable-next-line no-unused-vars
 function filterstreamitem() {
   // eslint-disable-next-line no-undef
@@ -154,96 +171,109 @@ function filterstreamitem() {
         if (id === 'cpf' || id === 'cnpj') {
           if (id === 'cpf') {
             if (!validCPF(keys[1])) {
-              return 'CPF Inválido. Formato esperado: XXX-XXX-XXX-XX';
+              return 'CPF Inválido. Formato esperado: XXX-XXX-XXX-XX.';
             }
           }
 
           if (id === 'cnpj') {
             if (!validCNPJ(keys[1])) {
-              return 'CNPJ Inválido. Formato esperado: XX.XXX.XXX/XXXX-XX';
+              return 'CNPJ Inválido. Formato esperado: XX.XXX.XXX/XXXX-XX.';
             }
           }
 
-          if (Object.keys(data).length() < 10 || Object.keys(data).length() > 15) {
-            return 'Quantidade de propriedades inválidas no JSON de Registro';
+          if (Object.keys(data).length < 10 || Object.keys(data).length > 15) {
+            return 'Quantidade de propriedades inválidas no JSON de Registro.';
           }
 
-          const validationObject = {
-            razao: {
-              tp: '<',
-              sz: 150,
-            },
-            fantasia: {
-              tp: '<',
-              sz: 60,
-              op: true,
-            },
-            tipoId: {
-              tp: 'enum',
-              val: ['1', '2'],
-            },
-            id: {
-              fn: validCPForCNPJ,
-            },
-            logEnd: {
-              tp: '<',
-              sz: 125,
-            },
-            numEnd: {
-              tp: '<',
-              sz: 10,
-            },
-            compEnd: {
-              tp: '<',
-              sz: 60,
-              op: true,
-            },
-            bairroEnd: {
-              tp: '<',
-              sz: 60,
-            },
-            cidadeEnd: {
-              fn: validateCity,
-            },
-            estadoEnd: {
-              fn: validateState,
-            },
-            paisEnd: {
-              fn: validateCountry,
-              op: true,
-            },
-            cepEnd: {
-              fn: validateCep,
-            },
-            email: {
-              tp: '<',
-              sz: 80,
-              op: true,
-            },
-            tel: {
-              tp: '<',
-              sz: 20,
-              op: true,
-            },
-            endBlock: {
-              fn: validateAddr,
-            },
-          };
+          const obrigatoryKeys = ['razao', 'tipoId', 'id', 'logEnd', 'numEnd', 'bairroEnd', 'cidadeEnd', 'estadoEnd', 'cepEnd', 'endBlock'];
 
-          Object.keys(data).forEach((val) => {
-            if (Object.keys(validationObject).includes(val)) {
-              const validation = validationObject[val];
-              if (Object.keys(validation).includes('fn')) {
-                if (validation.fn(data[val], data)) {
-                  delete validationObject[val];
-                }
-              } else {
-                // check tp and sz
-              }
-            }
-          });
+          const hasObrigatoryKeys = obrigatoryKeys.every(value => Object.prototype.hasOwnProperty.call(data, value));
+
+          if (!hasObrigatoryKeys) {
+            return 'O Objeto não contém todas as propriedades obrigatórias';
+          }
+
+          const optionalKeys = ['fantasia', 'compEnd', 'paisEnd', 'email', 'tel'];
+
+          const hasExtraKeys = Object.keys(data).some(val => !(obrigatoryKeys.includes(val) || optionalKeys.includes(val)));
+
+          if (hasExtraKeys) {
+            return 'O Objeto contém propriedades não documentadas.';
+          }
+
+          if (!(data.razao || data.razao.length <= 150)) {
+            return 'Propriedade \'razao\' é obrigatória e tem tamanho máxima de 150 caracteres.';
+          }
+
+          if (!(data.tipoId) || (Number(data.tipoId) !== 1 || Number(data.tipoId) !== 2)) {
+            return 'Propriedade \'tipoId\' é obrigatória e só pode ser 1 (cpf) ou 2 (cnpj).';
+          }
+
+          if (!(data.id)) {
+            return 'Propriedade \'id\' é obrigatória.';
+          }
+
+          if (!(data.id !== keys[1])) {
+            return 'Propriedade \'id\' é diferente da segunda chave da publicação';
+          }
+
+          if (Number(data.tipoId) === 1 && !validCPF(data.id)) {
+            return 'Propriedade \'id\' não é um CPF válido';
+          }
+
+          if (Number(data.tipoId) === 2 && !validCNPJ(data.id)) {
+            return 'Propriedade \'id\' não é um CNPJ válido';
+          }
+
+          if (!(data.logEnd || data.logEnd.length <= 125)) {
+            return 'Propriedade \'logEnd\' é obrigatória e tem tamanho máxima de 125 caracteres.';
+          }
+
+          if (!(data.numEnd || data.numEnd.length <= 10)) {
+            return 'Propriedade \'numEnd\' é obrigatória e tem tamanho máxima de 10 caracteres.';
+          }
+
+          if (!(data.bairroEnd || data.bairroEnd.length <= 150)) {
+            return 'Propriedade \'bairroEnd\' é obrigatória e tem tamanho máxima de 60 caracteres.';
+          }
+
+          if (!(data.cidadeEnd && validateCity(data.cidadeEnd))) {
+            return 'Propriedade \'cidadeEnd\' é obrigatória e precisa corresponder à um municipio do IBGE.';
+          }
+
+          if (!(data.estadoEnd && validateState(data.estadoEnd))) {
+            return 'Propriedade \'estadoEnd\' é obrigatória e precisa corresponder à uma UF.';
+          }
+
+          if (!validateCityWithinState(data.cidadeEnd, data.estadoEnd)) {
+            return 'Propriedade \'cidadeEnd\' não pertence ao \'estadoEnd\'';
+          }
+
+          if (Number(data.cidadeEnd) === 9999999 && (data.paisEnd && validateCountry(data.paisEnd))) {
+            return 'Propriedade \'paisEnd\' é obrigatória quando município é 9999999 e precisa corresponder com o código do país no BACEN';
+          }
+
+          // Checar se CEP está contido no UF/Municipio
+
+          if (!(data.cepEnd && validateCEP(data.cepEnd))) {
+            return 'Propriedade \'cepEnd\' é obrigatória e precisa corresponder à um CEP válido.';
+          }
+
+          if (!(data.endBlock && validateAddress(data.endBlock))) {
+            return 'Propriedade \'endBlock\' é obrigatória e precisa corresponder à um endereço público válido.';
+          }
+
+          // validate optionals:
+
+          // validate fantasia size 60
+
+          // validate compEnd size 60
+
+          // validate email size 80
+
+          // validate tel size 20
         }
-        return 'A primeira chave da publicação precisa ser \'CPF\' ou \'CNPJ\'';
+        return 'A primeira chave da publicação precisa ser \'CPF\' ou \'CNPJ\'.';
       }
     });
   }
