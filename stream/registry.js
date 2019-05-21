@@ -73,7 +73,13 @@ function validCNPJ(_cnpj) {
   return calc(t) === d1 && calc(t + 1) === d2;
 }
 
+function validCPForCNPJ(data, type) {
 
+}
+
+function validateCity(code) {
+
+}
 // eslint-disable-next-line no-unused-vars
 function filterstreamitem() {
   // eslint-disable-next-line no-undef
@@ -161,6 +167,81 @@ function filterstreamitem() {
           if (Object.keys(data).length() < 10 || Object.keys(data).length() > 15) {
             return 'Quantidade de propriedades inválidas no JSON de Registro';
           }
+
+          const validationObject = {
+            razao: {
+              tp: '<',
+              sz: 150,
+            },
+            fantasia: {
+              tp: '<',
+              sz: 60,
+              op: true,
+            },
+            tipoId: {
+              tp: 'enum',
+              val: ['1', '2'],
+            },
+            id: {
+              fn: validCPForCNPJ,
+            },
+            logEnd: {
+              tp: '<',
+              sz: 125,
+            },
+            numEnd: {
+              tp: '<',
+              sz: 10,
+            },
+            compEnd: {
+              tp: '<',
+              sz: 60,
+              op: true,
+            },
+            bairroEnd: {
+              tp: '<',
+              sz: 60,
+            },
+            cidadeEnd: {
+              fn: validateCity,
+            },
+            estadoEnd: {
+              fn: validateState,
+            },
+            paisEnd: {
+              fn: validateCountry,
+              op: true,
+            },
+            cepEnd: {
+              fn: validateCep,
+            },
+            email: {
+              tp: '<',
+              sz: 80,
+              op: true,
+            },
+            tel: {
+              tp: '<',
+              sz: 20,
+              op: true,
+            },
+            endBlock: {
+              fn: validateAddr,
+            },
+          };
+
+          Object.keys(data).forEach((val) => {
+            if (Object.keys(validationObject).includes(val)) {
+              const validation = validationObject[val];
+              if (Object.keys(validation).includes('fn')) {
+                if (validation.fn(data[val], data)) {
+                  delete validationObject[val];
+                }
+              } else {
+                // check tp and sz
+              }
+            }
+          });
         }
         return 'A primeira chave da publicação precisa ser \'CPF\' ou \'CNPJ\'';
       }
