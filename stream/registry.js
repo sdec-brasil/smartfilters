@@ -162,7 +162,7 @@ function validateCountry(country) {
     2321, // Dinamarca
     7838, // Djibuti
     2356, // Dominica, Ilha
-    402 , // Egito
+    402, // Egito
     6874, // El Salvador
     2445, // Emirados Árabes Unidos
     2399, // Equador
@@ -361,17 +361,21 @@ function filterstreamitem() {
   const transaction = getfiltertransaction();
 
   if (transaction.items.length > 0) {
-    transaction.items.forEach((element) => {
+    let reason = null;
+    for (let i = 0; i < transaction.items.length; i++) {
+      const element = transaction.items[i];
       if (element.name === registryStreamName) {
         const { keys } = element;
         const data = element.data.json;
 
         if (keys.length !== 2) {
-          return 'O registro de empresas exige duas chaves [\'id\', numero] (i.e: [\'cpf\', \'356.695.940-53\'].';
+          reason = 'O registro de empresas exige duas chaves [\'id\', numero] (i.e: [\'cpf\', \'356.695.940-53\'].';
+          break;
         }
 
         if (typeof keys[0] !== 'string' || typeof keys[1] !== 'string') {
-          return 'As duas chaves da publicação precisam ser strings.';
+          reason = 'As duas chaves da publicação precisam ser strings.';
+          break;
         }
 
         const id = keys[0].toLowerCase();
@@ -379,18 +383,21 @@ function filterstreamitem() {
         if (id === 'cpf' || id === 'cnpj') {
           if (id === 'cpf') {
             if (!validCPF(keys[1])) {
-              return 'CPF Inválido. Formato esperado: XXX-XXX-XXX-XX.';
+              reason = 'CPF Inválido. Formato esperado: XXX-XXX-XXX-XX.';
+              break;
             }
           }
 
           if (id === 'cnpj') {
             if (!validCNPJ(keys[1])) {
-              return 'CNPJ Inválido. Formato esperado: XX.XXX.XXX/XXXX-XX.';
+              reason = 'CNPJ Inválido. Formato esperado: XX.XXX.XXX/XXXX-XX.';
+              break;
             }
           }
 
           if (Object.keys(data).length < 10 || Object.keys(data).length > 15) {
-            return 'Quantidade de propriedades inválidas no JSON de Registro.';
+            reason = 'Quantidade de propriedades inválidas no JSON de Registro.';
+            break;
           }
 
           const obrigatoryKeys = ['razao', 'tipoId', 'identificacao', 'logEnd', 'numEnd', 'bairroEnd', 'cidadeEnd', 'estadoEnd', 'cepEnd', 'endBlock'];
@@ -398,7 +405,8 @@ function filterstreamitem() {
           const hasObrigatoryKeys = obrigatoryKeys.every(value => Object.prototype.hasOwnProperty.call(data, value));
 
           if (!hasObrigatoryKeys) {
-            return 'O Objeto não contém todas as propriedades obrigatórias';
+            reason = 'O Objeto não contém todas as propriedades obrigatórias';
+            break;
           }
 
           const optionalKeys = ['fantasia', 'compEnd', 'paisEnd', 'email', 'tel'];
@@ -406,91 +414,114 @@ function filterstreamitem() {
           const hasExtraKeys = Object.keys(data).some(val => !(obrigatoryKeys.includes(val) || optionalKeys.includes(val)));
 
           if (hasExtraKeys) {
-            return 'O Objeto contém propriedades não documentadas.';
+            reason = 'O Objeto contém propriedades não documentadas.';
+            break;
           }
 
           if (!(data.razao || data.razao.length <= 150)) {
-            return 'Propriedade \'razao\' é obrigatória e tem tamanho máxima de 150 caracteres.';
+            reason = 'Propriedade \'razao\' é obrigatória e tem tamanho máxima de 150 caracteres.';
+            break;
           }
 
           if (!(data.tipoId) || (Number(data.tipoId) !== 1 || Number(data.tipoId) !== 2)) {
-            return 'Propriedade \'tipoId\' é obrigatória e só pode ser 1 (cpf) ou 2 (cnpj).';
+            reason = 'Propriedade \'tipoId\' é obrigatória e só pode ser 1 (cpf) ou 2 (cnpj).';
+            break;
           }
 
           if (!(data.identificacao)) {
-            return 'Propriedade \'identificacao\' é obrigatória.';
+            reason = 'Propriedade \'identificacao\' é obrigatória.';
+            break;
           }
 
           if (!(data.identificacao !== keys[1])) {
-            return 'Propriedade \'identificacao\' é diferente da segunda chave da publicação';
+            reason = 'Propriedade \'identificacao\' é diferente da segunda chave da publicação';
+            break;
           }
 
           if (Number(data.tipoId) === 1 && !validCPF(data.identificacao)) {
-            return 'Propriedade \'identificacao\' não é um CPF válido';
+            reason = 'Propriedade \'identificacao\' não é um CPF válido';
+            break;
           }
 
           if (Number(data.tipoId) === 2 && !validCNPJ(data.identificacao)) {
-            return 'Propriedade \'identificacao\' não é um CNPJ válido';
+            reason = 'Propriedade \'identificacao\' não é um CNPJ válido';
+            break;
           }
 
           if (!(data.logEnd || data.logEnd.length <= 125)) {
-            return 'Propriedade \'logEnd\' é obrigatória e tem tamanho máxima de 125 caracteres.';
+            reason = 'Propriedade \'logEnd\' é obrigatória e tem tamanho máxima de 125 caracteres.';
+            break;
           }
 
           if (!(data.numEnd || data.numEnd.length <= 10)) {
-            return 'Propriedade \'numEnd\' é obrigatória e tem tamanho máxima de 10 caracteres.';
+            reason = 'Propriedade \'numEnd\' é obrigatória e tem tamanho máxima de 10 caracteres.';
+            break;
           }
 
           if (!(data.bairroEnd || data.bairroEnd.length <= 150)) {
-            return 'Propriedade \'bairroEnd\' é obrigatória e tem tamanho máxima de 60 caracteres.';
+            reason = 'Propriedade \'bairroEnd\' é obrigatória e tem tamanho máxima de 60 caracteres.';
+            break;
           }
 
           if (!(data.cidadeEnd && validateCity(data.cidadeEnd))) {
-            return 'Propriedade \'cidadeEnd\' é obrigatória e precisa corresponder à um municipio do IBGE.';
+            reason = 'Propriedade \'cidadeEnd\' é obrigatória e precisa corresponder à um municipio do IBGE.';
+            break;
           }
 
           if (!(data.estadoEnd && validateState(data.estadoEnd))) {
-            return 'Propriedade \'estadoEnd\' é obrigatória e precisa corresponder à uma UF.';
+            reason = 'Propriedade \'estadoEnd\' é obrigatória e precisa corresponder à uma UF.';
+            break;
           }
 
           if (!validateCityWithinState(data.cidadeEnd, data.estadoEnd)) {
-            return 'Propriedade \'cidadeEnd\' não pertence ao \'estadoEnd\'';
+            reason = 'Propriedade \'cidadeEnd\' não pertence ao \'estadoEnd\'';
+            break;
           }
 
           if (Number(data.cidadeEnd) === 9999999 && (data.paisEnd && validateCountry(data.paisEnd))) {
-            return 'Propriedade \'paisEnd\' é obrigatória quando município é 9999999 e precisa corresponder com o código do país no BACEN';
+            reason = 'Propriedade \'paisEnd\' é obrigatória quando município é 9999999 e precisa corresponder com o código do país no BACEN';
+            break;
           }
 
           // Checar se CEP está contido no UF/Municipio
 
           if (!(data.cepEnd && validateCEP(data.cepEnd))) {
-            return 'Propriedade \'cepEnd\' é obrigatória e precisa corresponder à um CEP válido.';
+            reason = 'Propriedade \'cepEnd\' é obrigatória e precisa corresponder à um CEP válido.';
+            break;
           }
 
           if (!(data.endBlock && validateAddress(data.endBlock))) {
-            return 'Propriedade \'endBlock\' é obrigatória e precisa corresponder à um endereço público válido.';
+            reason = 'Propriedade \'endBlock\' é obrigatória e precisa corresponder à um endereço público válido.';
+            break;
           }
 
           if (data.fantasia && data.fantasia.length > 60) {
-            return 'Propriedade \'fantasia\' tem tamanho máxima de 60 caracteres.';
+            reason = 'Propriedade \'fantasia\' tem tamanho máxima de 60 caracteres.';
+            break;
           }
 
           if (data.compEnd && data.compEnd.length > 60) {
-            return 'Propriedade \'compEnd\' tem tamanho máxima de 60 caracteres.';
+            reason = 'Propriedade \'compEnd\' tem tamanho máxima de 60 caracteres.';
+            break;
           }
 
           if (data.email && data.email.length > 80) {
-            return 'Propriedade \'email\' tem tamanho máxima de 80 caracteres.';
+            reason = 'Propriedade \'email\' tem tamanho máxima de 80 caracteres.';
+            break;
           }
 
           if (data.tel && data.tel.length > 20) {
-            return 'Propriedade \'email\' tem tamanho máxima de 80 caracteres.';
+            reason = 'Propriedade \'email\' tem tamanho máxima de 80 caracteres.';
+            break;
           }
-
-          return '';
         }
-        return 'A primeira chave da publicação precisa ser \'CPF\' ou \'CNPJ\'.';
+
+        reason = 'A primeira chave da publicação precisa ser \'CPF\' ou \'CNPJ\'.';
       }
-    });
+    }
+
+    return reason;  
   }
+  return;
 }
+
