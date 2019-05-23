@@ -1,5 +1,7 @@
+const municipios = require('./data/municipios.json')
+
 const ceps = require('./data/ceps.json');
-const municipios = require('./data/municipios.json');
+
 
 function validCPF(cpf) {
   // Check CPF format
