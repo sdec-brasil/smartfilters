@@ -9,7 +9,7 @@ echo "Duplicating registry.js"
 cp ./stream/registry.js ./deploy/registry.js
 echo "Removing requires json..."
 sed -e '1s{.*{ // nothing {' -i '' ./deploy/registry.js
-sed -e '2s{.*{ // nothing {' -i '' ./deploy/registry.js
+sed -e '3s{.*{ // nothing {' -i '' ./deploy/registry.js
 echo "Constructing file for deployment"
 echo "const municipios = " > ./deploy/uni.js
 echo "Inserting JSON Municipios..."
@@ -17,29 +17,42 @@ cat ./data/municipios.json >> ./deploy/uni.js
 echo ";" >> ./deploy/uni.js
 echo "" >> ./deploy/uni.js
 echo "const ceps = " >> ./deploy/uni.js
+
+echo "Parsing JSON CEPS..."
+cp ./data/ceps.json ./deploy/parsedCEPS.json
+sed -e 's|`|\\`|g' -i '' ./deploy/parsedCEPS.json
 echo "Inserting JSON CEPS..."
 
-echo "This may take a while"
-current_date_time="`date "+%Y-%m-%d %H:%M:%S"`";
-echo $current_date_time;
-
-cat ./data/ceps.json >> ./deploy/uni.js
-
-echo "Done"
-current_date_time2="`date "+%Y-%m-%d %H:%M:%S"`";
-echo $current_date_time2;
+cat ./deploy/parsedCEPS.json >> ./deploy/uni.js
+#echo "{}" >> ./deploy/uni.js
 
 echo ";" >> ./deploy/uni.js
 echo "" >> ./deploy/uni.js
-echo "Inserting JS File..."
+echo "Parsing and Inserting JS File..."
+sed -e 's|\\|\\\\|g' -i '' ./deploy/registry.js
 cat ./deploy/registry.js >> ./deploy/uni.js
 
-echo "Creating mini.js without white spaces..."
-tr -d '[:space:]' < ./deploy/uni.js > ./deploy/mini.js
+echo "Creating JSON RPC Deployment File"
+touch ./deploy/deployRegistryRPC.js
 
-mini=$(cat ./deploy/mini.js)
+cat << EOF > ./deploy/deployRegistryRPC.js
+const Multichain = require('multinodejs');
+const masterPort = 8001;
+const masterPassword = 'this-is-insecure-change-it';
+const stream = 'Registros';
+const node = Multichain({
+  port: masterPort,
+  host: 'localhost',
+  user: 'multichainrpc',
+  pass: masterPassword,
+});
+node.create(['txfilter', 'registryFilters2', {}, \`
+EOF
 
-docker exec docker-multichain_masternode_1 multichain-cli MyChain create txfilter validacaoRegistros "{}" "$mini"
+cat ./deploy/uni.js >> ./deploy/deployRegistryRPC.js
+echo '`]).then(e => console.log(e)).catch(e => console.error(e));' >> ./deploy/deployRegistryRPC.js
+
+#docker exec docker-multichain_masternode_1 multichain-cli MyChain create txfilter validacaoRegistros "{}" "$mini"
 
 #echo "$registryWithMunicipios"
 

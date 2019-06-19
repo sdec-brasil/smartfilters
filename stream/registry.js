@@ -1,11 +1,11 @@
-const municipios = require('./data/municipios.json')
+const municipios = require('./data/municipios.json');
 
 const ceps = require('./data/ceps.json');
 
 
 function validCPF(cpf) {
   // Check CPF format
-  if (/[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}/.test(cpf)) {
+  if (!(/[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}/.test(cpf))) {
     return false;
   }
 
@@ -93,44 +93,48 @@ function validateState(uf) {
 }
 
 function validateCityWithinState(cityCode, uf) {
-  return municipios[cityCode].uf == uf;
+  try {
+    return municipios[cityCode].uf === uf;
+  } catch (e) {
+    return false;
+  }
 }
 
 function validateCountry(country) {
   const countries = [
-    132,  // Afeganistão
+    132, // Afeganistão
     7560, // África do Sul
-    175,  // Albânia, República da
-    230,  // Alemanha
-    370,  // Andorra
-    400,  // Angola
-    418,  // Anguilla
-    434,  // Antigua e Barbuda
-    477,  // Antilhas Holandesas
-    531,  // Arábia Saudita
-    590,  // Argélia
-    639,  // Argentina
-    647,  // Armênia, República da
-    655,  // Aruba
-    698,  // Austrália
-    728,  // Áustria
-    736,  // Azerbaijão, República do
-    779,  // Bahamas, Ilhas
-    809,  // Bahrein, Ilhas
-    817,  // Bangladesh
-    833,  // Barbados
-    850,  // Belarus
-    876,  // Bélgica
-    884,  // Belize
+    175, // Albânia, República da
+    230, // Alemanha
+    370, // Andorra
+    400, // Angola
+    418, // Anguilla
+    434, // Antigua e Barbuda
+    477, // Antilhas Holandesas
+    531, // Arábia Saudita
+    590, // Argélia
+    639, // Argentina
+    647, // Armênia, República da
+    655, // Aruba
+    698, // Austrália
+    728, // Áustria
+    736, // Azerbaijão, República do
+    779, // Bahamas, Ilhas
+    809, // Bahrein, Ilhas
+    817, // Bangladesh
+    833, // Barbados
+    850, // Belarus
+    876, // Bélgica
+    884, // Belize
     2291, // Benin
-    906,  // Bermudas
-    973,  // Bolívia
-    981,  // Bósnia-Herzegovina
+    906, // Bermudas
+    973, // Bolívia
+    981, // Bósnia-Herzegovina
     1015, // Botsuana
     1058, // Brasil
     1082, // Brunei
     1112, // Bulgária, República da
-    310,  // Burkina Faso
+    310, // Burkina Faso
     1155, // Burundi
     1198, // Butão
     1279, // Cabo Verde, República de
@@ -139,7 +143,7 @@ function validateCountry(country) {
     1490, // Canadá
     1504, // Canal, Ilhas do (Jersey e Guernsey)
     1511, // Canárias, Ilhas
-    1546, // Catar 
+    1546, // Catar
     1376, // Cayman, Ilhas
     1538, // Cazaquistão, República do
     7889, // Chade
@@ -182,7 +186,7 @@ function validateCountry(country) {
     2674, // Filipinas
     2712, // Finlândia
     1619, // Formosa (Taiwan)
-    2755, // França 
+    2755, // França
     2810, // Gabão
     6289, // Gales, País de
     2852, // Gâmbia
@@ -225,7 +229,7 @@ function validateCountry(country) {
     4111, // Kiribati
     4200, // Laos, Rep. Pop. Democrática do
     4235, // Lebuan
-    4260, // Lesoto 
+    4260, // Lesoto
     4278, // Letônia, República da
     4316, // Líbano
     4340, // Libéria
@@ -250,7 +254,7 @@ function validateCountry(country) {
     4855, // Maurício
     4880, // Mauritânia
     4936, // México
-    0930, // Mianmar (Birmânia)
+    930, // Mianmar (Birmânia)
     4995, // Micronésia
     4901, // Midway, Ilhas
     5053, // Moçambique
@@ -268,7 +272,7 @@ function validateCountry(country) {
     5355, // Norfolk, Ilha
     5380, // Noruega
     5428, // Nova Caledônia
-    5487, // Nova Zelândia 
+    5487, // Nova Zelândia
     5568, // Omã
     5738, // Países Baixos (Holanda)
     5754, // Palau
@@ -311,7 +315,7 @@ function validateCountry(country) {
     7544, // Suazilândia
     7595, // Sudão
     7641, // Suécia
-    7676, // Suíça 
+    7676, // Suíça
     7706, // Suriname
     7722, // Tadjiquistão
     7765, // Tailândia
@@ -342,8 +346,8 @@ function validateCountry(country) {
     8753, // Wallis e Futuna, Ilhas
     8907, // Zâmbia
     6653, // Zimbábue
-    8958, // Zona do Canal do Panamá 
-  ]
+    8958, // Zona do Canal do Panamá
+  ];
 
   return countries.includes(Number(country));
 }
@@ -356,20 +360,21 @@ function validateAddress(address) {
   if (address.length < 26 || address.length > 35) {
     return false;
   }
-  
-  let re = /^[A-Z0-9]+$/i;
+
+  const re = /^[A-Z0-9]+$/i;
   if (!re.test(address)) {
     return false;
   }
-  
+
   return true;
 }
 
 // eslint-disable-next-line no-unused-vars
-function filterstreamitem() {
+function filtertransaction() {
   // eslint-disable-next-line no-undef
   const registryStreamName = 'Registro';
   const transaction = getfiltertransaction();
+
 
   if (transaction.items.length > 0) {
     let reason = null;
@@ -380,7 +385,7 @@ function filterstreamitem() {
         const data = element.data.json;
 
         if (keys.length !== 2) {
-          reason = 'O registro de empresas exige duas chaves [\'id\', numero] (i.e: [\'cpf\', \'356.695.940-53\'].';
+          reason = 'O registro de empresas exige duas chaves [id, numero] (i.e: [cpf, 356.695.940-53].';
           break;
         }
 
@@ -394,7 +399,7 @@ function filterstreamitem() {
         if (id === 'cpf' || id === 'cnpj') {
           if (id === 'cpf') {
             if (!validCPF(keys[1])) {
-              reason = 'CPF Inválido. Formato esperado: XXX-XXX-XXX-XX.';
+              reason = 'CPF Inválido. Formato esperado: XXX.XXX.XXX-XX.';
               break;
             }
           }
@@ -411,7 +416,7 @@ function filterstreamitem() {
             break;
           }
 
-          const obrigatoryKeys = ['razao', 'tipoId', 'identificacao', 'logEnd', 'numEnd', 'bairroEnd', 'cidadeEnd', 'estadoEnd', 'cepEnd', 'endBlock'];
+          const obrigatoryKeys = ['razao', 'tipoIdentificacao', 'identificacao', 'logEnd', 'numEnd', 'bairroEnd', 'cidadeEnd', 'estadoEnd', 'cepEnd', 'endBlock'];
 
           const hasObrigatoryKeys = obrigatoryKeys.every(value => Object.prototype.hasOwnProperty.call(data, value));
 
@@ -429,110 +434,103 @@ function filterstreamitem() {
             break;
           }
 
-          if (!(data.razao || data.razao.length <= 150)) {
-            reason = 'Propriedade \'razao\' é obrigatória e tem tamanho máxima de 150 caracteres.';
+          if (!data.razao || typeof data.razao !== 'string' || (data.razao.length >= 150 || data.razao.length <= 0)) {
+            reason = 'Propriedade razao é string obrigatória e tem tamanho máxima de 150 caracteres.';
             break;
           }
 
-          if (!(data.tipoId) || (Number(data.tipoId) !== 1 || Number(data.tipoId) !== 2)) {
-            reason = 'Propriedade \'tipoId\' é obrigatória e só pode ser 1 (cpf) ou 2 (cnpj).';
+          if (!data.tipoIdentificacao || (Number(data.tipoIdentificacao) !== 1 && Number(data.tipoIdentificacao) !== 2)) {
+            reason = 'Propriedade tipoIdentificacao é obrigatória e só pode ser 1 (cpf) ou 2 (cnpj).';
             break;
           }
 
           if (!(data.identificacao)) {
-            reason = 'Propriedade \'identificacao\' é obrigatória.';
+            reason = 'Propriedade identificacao é obrigatória.';
             break;
           }
 
-          if (!(data.identificacao !== keys[1])) {
-            reason = 'Propriedade \'identificacao\' é diferente da segunda chave da publicação';
+          if (data.identificacao !== keys[1]) {
+            reason = 'Propriedade identificacao é diferente da segunda chave da publicação';
             break;
           }
 
-          if (Number(data.tipoId) === 1 && !validCPF(data.identificacao)) {
-            reason = 'Propriedade \'identificacao\' não é um CPF válido';
+          if (!data.logEnd || typeof data.logEnd !== 'string' || (data.logEnd.length >= 150 || data.logEnd.length <= 0)) {
+            reason = 'Propriedade logEnd é string obrigatória e tem tamanho máxima de 125 caracteres.';
             break;
           }
 
-          if (Number(data.tipoId) === 2 && !validCNPJ(data.identificacao)) {
-            reason = 'Propriedade \'identificacao\' não é um CNPJ válido';
+          if (!data.numEnd || typeof data.numEnd !== 'string' || (data.numEnd.length >= 150 || data.numEnd.length <= 0)) {
+            reason = 'Propriedade numEnd é string obrigatória e tem tamanho máxima de 10 caracteres.';
             break;
           }
 
-          if (!(data.logEnd || data.logEnd.length <= 125)) {
-            reason = 'Propriedade \'logEnd\' é obrigatória e tem tamanho máxima de 125 caracteres.';
+          if (!data.bairroEnd || typeof data.bairroEnd !== 'string' || (data.bairroEnd.length >= 150 || data.bairroEnd.length <= 0)) {
+            reason = 'Propriedade bairroEnd é obrigatória e tem tamanho máxima de 60 caracteres.';
             break;
           }
 
-          if (!(data.numEnd || data.numEnd.length <= 10)) {
-            reason = 'Propriedade \'numEnd\' é obrigatória e tem tamanho máxima de 10 caracteres.';
-            break;
+          if (!data.cidadeEnd) {
+            reason = 'Propriedade cidadeEnd é obrigatória e precisa corresponder à um municipio do IBGE ou 9999999 se no exterior';
           }
 
-          if (!(data.bairroEnd || data.bairroEnd.length <= 150)) {
-            reason = 'Propriedade \'bairroEnd\' é obrigatória e tem tamanho máxima de 60 caracteres.';
-            break;
-          }
+          if (data.cidadeEnd === '9999999') {
+            if (!data.paisEnd || !validateCountry(data.paisEnd)) {
+              reason = 'Propriedade paisEnd é obrigatória quando município é 9999999 e precisa corresponder com o código do país no BACEN';
+              break;
+            }
+          } else {
+            if (!data.cidadeEnd || !validateCity(data.cidadeEnd)) {
+              reason = 'Propriedade cidadeEnd é obrigatória e precisa corresponder à um municipio do IBGE.';
+              break;
+            }
 
-          if (!(data.cidadeEnd && validateCity(data.cidadeEnd))) {
-            reason = 'Propriedade \'cidadeEnd\' é obrigatória e precisa corresponder à um municipio do IBGE.';
-            break;
-          }
+            if (!(data.estadoEnd && validateState(data.estadoEnd))) {
+              reason = 'Propriedade estadoEnd é obrigatória e precisa corresponder à uma UF.';
+              break;
+            }
 
-          if (!(data.estadoEnd && validateState(data.estadoEnd))) {
-            reason = 'Propriedade \'estadoEnd\' é obrigatória e precisa corresponder à uma UF.';
-            break;
-          }
+            if (!validateCityWithinState(data.cidadeEnd, data.estadoEnd)) {
+              reason = 'Propriedade cidadeEnd não pertence ao estadoEnd';
+              break;
+            }
 
-          if (!validateCityWithinState(data.cidadeEnd, data.estadoEnd)) {
-            reason = 'Propriedade \'cidadeEnd\' não pertence ao \'estadoEnd\'';
-            break;
-          }
-
-          if (Number(data.cidadeEnd) === 9999999 && (data.paisEnd && validateCountry(data.paisEnd))) {
-            reason = 'Propriedade \'paisEnd\' é obrigatória quando município é 9999999 e precisa corresponder com o código do país no BACEN';
-            break;
-          }
-
-          // Checar se CEP está contido no UF/Municipio
-
-          if (!(data.cepEnd && validateCEP(data.cepEnd))) {
-            reason = 'Propriedade \'cepEnd\' é obrigatória e precisa corresponder à um CEP válido.';
-            break;
+            if (!(data.cepEnd && validateCEP(data.cepEnd))) {
+              reason = 'Propriedade cepEnd é obrigatória e precisa corresponder à um CEP válido.';
+              break;
+            }
           }
 
           if (!(data.endBlock && validateAddress(data.endBlock))) {
-            reason = 'Propriedade \'endBlock\' é obrigatória e precisa corresponder à um endereço público válido.';
+            reason = 'Propriedade endBlock é obrigatória e precisa corresponder à um endereço público válido.';
             break;
           }
 
-          if (data.fantasia && data.fantasia.length > 60) {
-            reason = 'Propriedade \'fantasia\' tem tamanho máxima de 60 caracteres.';
+          if (data.hasOwnProperty('fantasia') && (data.fantasia.length <= 0 || data.fantasia.length > 60)) {
+            reason = 'Propriedade fantasia tem tamanho máximo de 60 caracteres e não pode ser vazia se presente.';
             break;
           }
 
-          if (data.compEnd && data.compEnd.length > 60) {
-            reason = 'Propriedade \'compEnd\' tem tamanho máxima de 60 caracteres.';
+          if (data.hasOwnProperty('compEnd') && (data.compEnd.length <= 0 || data.compEnd.length > 60)) {
+            reason = 'Propriedade compEnd tem tamanho máximo de 60 caracteres e não pode ser vazia se presente.';
             break;
           }
 
-          if (data.email && data.email.length > 80) {
-            reason = 'Propriedade \'email\' tem tamanho máxima de 80 caracteres.';
+          if (data.hasOwnProperty('email') && (data.email.length <= 0 || data.email.length > 80)) {
+            reason = 'Propriedade email tem tamanho máximo de 80 caracteres e não pode ser vazia se presente.';
             break;
           }
 
-          if (data.tel && data.tel.length > 20) {
-            reason = 'Propriedade \'email\' tem tamanho máxima de 80 caracteres.';
+          if (data.hasOwnProperty('tel') && (data.tel.length <= 0 || data.tel.length > 20)) {
+            reason = 'Propriedade tel tem tamanho máximo de 20 caracteres e não pode ser vazia se presente.';
             break;
           }
+        } else {
+          reason = 'A primeira chave da publicação precisa ser CPF ou CNPJ';
         }
-
-        reason = 'A primeira chave da publicação precisa ser \'CPF\' ou \'CNPJ\'.';
+        break;
       }
     }
 
-    return reason;  
+    return reason;
   }
-  return;
 }
-
