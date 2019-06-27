@@ -21,47 +21,62 @@ function validateAddress(address) {
 const municipios = require('../data/municipios.json');
 
 function validateNote(obj) {
+  function getProp(key, obj) {
+    const path = key.split('.');
+    if (path.length > 1) {
+      if (obj[path[0]] === undefined) return undefined;
+      return obj[path[0]][path[1]];
+    }
+
+    return obj[path[0]];
+  }
   function field(name, type, necessary, maxSize, customRule = undefined) {
     try {
-      if (!obj[name] && necessary) return false;
-      if (obj[name]) {
-        let value = obj[name];
+      if (getProp(name, obj) === undefined && necessary) return [name, false];
+      if (getProp(name, obj) !== undefined) {
+        let value = getProp(name, obj);
 
         if (type === 'number' || type === 'integer') {
-          if (Number.isNaN(Number(value))) return false;
-          if (type === 'integer' && !Number.isInteger(Number(value))) return false;
+          if (Number.isNaN(Number(value))) return [name, false];
+          if (type === 'integer' && !Number.isInteger(Number(value))) return [name, false];
           value = Number(value);
         }
 
         if (type === 'string') {
           value = String(value);
-          if (value.length > maxSize || value.length === 0) return false;
-        } else {
-          return false;
+          if (value.length > maxSize || value.length === 0) return [name, false];
+        // } else {
+        //   return [name, false];
         }
 
         if (type === 'date') {
           const formattedDate = `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6)}`;
           const date = new Date(formattedDate);
-          if (!date.getTime()) return false;
-          return date.toISOString().slice(0, 10).replace(/-/g, '') === value;
+          if (!date.getTime()) return [name, false];
+          return [name, date.toISOString().slice(0, 10).replace(/-/g, '') === value];
         }
 
         if (type === 'boolean') {
           // here the customRule wont be able to access the value of the variable
-          return (value === true) || (value === false);
+          return [name, ([true, 'true', false, 'false'].includes(value))];
         }
 
-        if (customRule) return customRule(value, obj);
+        if (customRule) {
+          const result = customRule(value, obj);
+          return [name, result];
+        }
       }
-      return true;
+      return [name, true];
     } catch (e) {
-      return false;
+      return [name, false];
     }
   }
 
-  const results = [];
-  const validate = results.push;
+  const results = {};
+  const validate = (a) => {
+    const [key, value] = a;
+    results[key] = [obj[key], value];
+  };
 
   const s = 'string';
   const n = 'number';
@@ -72,21 +87,24 @@ function validateNote(obj) {
   validate(field('emissor', s, true, 38, addr => validateAddress(addr)));
   validate(field('substitutes', s, false));
   validate(field('prestacao.prefeituraIncidencia', s, true, 7, code => !!municipios[code]));
-
-  validate(field('prestacao.baseCalculo', i, true, 15, (value, data) => value === Number(data.prestacao.valServicos) - Number(data.prestacao.valDeducoes) - Number(data.prestacao.descontoIncond)));
-  validate(field('prestacao.aliqServicos', i, true));
+  validate(field('prestacao.baseCalculo', i, true, 15, (value, data) => {
+    let targetValue = parseInt(data.prestacao.valServicos, 10) || 0;
+    targetValue -= parseInt(data.prestacao.valDeducoes, 10) || 0;
+    targetValue -= parseInt(data.prestacao.descontoIncond, 10) || 0;
+    return value === targetValue;
+  }));
+  validate(field('prestacao.aliqServicos', n, true));
   validate(field('prestacao.valLiquiNfse', i, true, null, (value, data) => {
-    // maybe all those fields need to be required
-    let targetValue = Number(data.prestacao.valServicos);
-    targetValue -= Number(data.prestacao.valPis);
-    targetValue -= Number(data.prestacao.valCofins);
-    targetValue -= Number(data.prestacao.valInss);
-    targetValue -= Number(data.prestacao.valIr);
-    targetValue -= Number(data.prestacao.valCsll);
-    targetValue -= Number(data.prestacao.outrasRetencoes);
-    targetValue -= Number(data.prestacao.valIss);
-    targetValue -= Number(data.prestacao.descontoIncond);
-    targetValue -= Number(data.prestacao.descontoCond);
+    let targetValue = (parseInt(data.prestacao.valServicos, 10) || 0);
+    targetValue -= (parseInt(data.prestacao.valPis, 10) || 0);
+    targetValue -= (parseInt(data.prestacao.valCofins, 10) || 0);
+    targetValue -= (parseInt(data.prestacao.valInss, 10) || 0);
+    targetValue -= (parseInt(data.prestacao.valIr, 10) || 0);
+    targetValue -= (parseInt(data.prestacao.valCsll, 10) || 0);
+    targetValue -= (parseInt(data.prestacao.outrasRetencoes, 10) || 0);
+    targetValue -= (parseInt(data.prestacao.valIss, 10) || 0);
+    targetValue -= (parseInt(data.prestacao.descontoIncond, 10) || 0);
+    targetValue -= (parseInt(data.prestacao.descontoCond, 10) || 0);
     return value === targetValue;
   }));
   validate(field('prestacao.competencia', d, true, 8));
@@ -142,14 +160,13 @@ function validateNote(obj) {
 
   validate(field('intermediario.identificacaoIntermed', s, false, 14));
   validate(field('intermediario.nomeRazaoIntermed', s, false, 150));
-  validate(field('intermediario.cidadeIntermed', false, i));
+  validate(field('intermediario.cidadeIntermed', i, false));
 
   validate(field('constCivil.codObra', s, false, 30));
   validate(field('constCivil.art', s, false, 30));
 
-  // esse campo não está no modelo de invoice, e sobrou.
-  // existe o campo optanteSimplesNacional. Será que está duplicado?
-  // validate(field('prestacao.simplesNacional'));
+  return results;
 }
 
 validateNote({});
+// module.exports = { validateNote };
