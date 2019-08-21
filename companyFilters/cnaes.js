@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-/* <!- worker:flag:CNAE !-> */
+/* worker:flag:CNAE: */
 function filtertransaction() {
   const cnaes = {
     '0111-3/01': 'Cultivo de arroz',
