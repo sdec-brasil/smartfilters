@@ -23,12 +23,43 @@ function filtertransaction() {
     return calc(t) === d1 && calc(t + 1) === d2;
   };
 
-  const mandatoryKeys = ['cnpj', 'cnaes', 'razao', 'fantasia', 'cepEnd', 'logEnd', 'numEnd', 'compEnd', 'bairroEnd', 'cidadeEnd', 'estadoEnd', 'regTrib', 'endBlock'];
-  const optionalKeys = ['email', 'telefone'];
+  const isCPF = (_cpf) => {
+    if (!/^\d{3}\x2E\d{3}\x2E\d{3}\x2D\d{2}$/.test(_cpf)) return false;
+    cpf = _cpf.replace(/[^\d]+/g, '');
+    if (cpf === '') return false;
+    // Elimina CPFs invalidos conhecidos
+    if (cpf.length !== 11
+      || cpf === '00000000000'
+      || cpf === '11111111111'
+      || cpf === '22222222222'
+      || cpf === '33333333333'
+      || cpf === '44444444444'
+      || cpf === '55555555555'
+      || cpf === '66666666666'
+      || cpf === '77777777777'
+      || cpf === '88888888888'
+      || cpf === '99999999999') { return false; }
+    // Valida 1o digito
+    add = 0;
+    for (i = 0; i < 9; i++) { add += parseInt(cpf.charAt(i)) * (10 - i); }
+    rev = 11 - (add % 11);
+    if (rev === 10 || rev === 11) { rev = 0; }
+    if (rev !== parseInt(cpf.charAt(9))) { return false; }
+    // Valida 2o digito
+    add = 0;
+    for (i = 0; i < 10; i++) { add += parseInt(cpf.charAt(i)) * (11 - i); }
+    rev = 11 - (add % 11);
+    if (rev === 10 || rev === 11) { rev = 0; }
+    if (rev !== parseInt(cpf.charAt(10))) { return false; }
+    return true;
+  };
+
+  const mandatoryKeys = ['taxNumber', 'economicActivies', 'name', 'tradeName', 'postalCode', 'street', 'number', 'additionalInformation', 'district', 'city', 'state', 'taxRegime', 'endBlock'];
+  const optionalKeys = ['email', 'phoneNumber'];
 
   const tx = getfiltertransaction();
   if (Object.prototype.hasOwnProperty.call(tx, 'issue')) {
-    if (tx.issue.type === 'issuefirst' && isCNPJ(tx.issue.name)) {
+    if (tx.issue.type === 'issuefirst' && (isCNPJ(tx.issue.name) || isCPF(tx.issue.name))) {
       const registry = tx.issue.details;
 
       if (tx.issue.open === false) {
