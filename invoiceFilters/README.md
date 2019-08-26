@@ -88,12 +88,13 @@ art                   |     ?     |      |
 
 #### Filtros:
 
-Nome do Arquivo     | Descrição/Objetivo                                               |
---------------------|------------------------------------------------------------------|
-fields.js           | Garantir a existência somente das chaves obrigatórias e opcionais|
-formatted.js        | Garantir formato estrutural dos dados presentes                  |
-[codigoIbge.js]     | Enforça os serviços e alíquotas daquele município                |
-tributes.js         | Garante a consistência entre os campos relativos                 |
+Nome do Arquivo     | Descrição/Objetivo                                                    |
+--------------------|-----------------------------------------------------------------------|
+chain.js            | Grante a permissão do endereço emissor e o nome do ativo padronizado  |
+fields.js           | Garantir a existência somente das chaves obrigatórias e opcionais     |
+formatted.js        | Garantir formato estrutural dos dados presentes                       |
+[codigoIbge.js]     | Enforça os serviços e alíquotas daquele município                     |
+tributes.js         | Garante a consistência entre os campos relativos                      |
 
 #### Comentários:
 
